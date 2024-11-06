@@ -2,6 +2,7 @@
   "name": "barkapay-sa/barkapay-laravel",
   "description": "A Laravel wrapper for BarkaPay payment services.",
   "type": "library",
+  "license": "MIT",
   "autoload": {
       "psr-4": {
           "BarkapayLaravel\\": "src/"
