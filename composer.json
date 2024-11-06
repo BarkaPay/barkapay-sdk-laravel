@@ -1,27 +1,27 @@
 {
-  "name": "barkapay-sa/barkapay-laravel",
-  "description": "A Laravel wrapper for BarkaPay payment services.",
-  "type": "library",
-  "license": "MIT",
-  "autoload": {
-      "psr-4": {
-          "BarkapayLaravel\\": "src/"
-      }
-  },
-  "require": {
-      "php": ">=7.4",
-      "guzzlehttp/guzzle": "^7.0",
-      "vlucas/phpdotenv": "^5.4",
-      "illuminate/support": "^8.0|^9.0"
-  },
-  "extra": {
-      "laravel": {
-          "providers": [
-              "BarkapayLaravel\\BarkaPayServiceProvider"
-          ],
-          "aliases": {
-              "BarkaPay": "BarkapayLaravel\\Facades\\BarkaPay"
-          }
-      }
-  }
+    "name": "barkapay-sa/barkapay-laravel",
+    "description": "A Laravel wrapper for BarkaPay payment services.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "BarkapayLaravel\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "guzzlehttp/guzzle": "^7.0",
+        "vlucas/phpdotenv": "^5.4",
+        "illuminate/support": "^8.0|^9.0|^10.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BarkapayLaravel\\BarkaPayServiceProvider"
+            ],
+            "aliases": {
+                "BarkaPay": "BarkapayLaravel\\Facades\\BarkaPay"
+            }
+        }
+    }
 }
