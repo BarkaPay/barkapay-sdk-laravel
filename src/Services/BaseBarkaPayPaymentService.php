@@ -3,6 +3,7 @@
 namespace BarkapayLaravel\Services;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use InvalidArgumentException;
 use RuntimeException;
 use Exception;
@@ -16,11 +17,11 @@ class BaseBarkaPayPaymentService
     private $apiSecret;
     private $sciKey;
     private $sciSecret;
+    protected $baseUrl;
+    private $currency;
+
     public const METHOD_GET = 'GET';
     public const METHOD_POST = 'POST';
-
-    public const BASE_URL = config('barkapay.base_url');
-    const CURRENCY = config('barkapay.currency');
 
     public function __construct()
     {
@@ -28,16 +29,24 @@ class BaseBarkaPayPaymentService
         $this->apiSecret = config('barkapay.api_secret');
         $this->sciKey = config('barkapay.sci_key');
         $this->sciSecret = config('barkapay.sci_secret');
+        $this->baseUrl = config('barkapay.base_url');
+        $this->currency = config('barkapay.currency');
 
         if (empty($this->apiKey) || empty($this->apiSecret) || empty($this->sciKey) || empty($this->sciSecret)) {
+            logError("API or SCI keys are missing", "Configuration");
             throw new InvalidArgumentException("API keys and SCI keys are required.");
+        }
+
+        if (empty($this->baseUrl)) {
+            logError("Base URL is missing", "Configuration");
+            throw new InvalidArgumentException("The API base URL is required.");
         }
     }
 
     /**
      * Sends HTTP requests using Guzzle.
      */
-    protected function sendHttpRequest(string $method, string $url, array $headers = [], array $body = [])
+    protected function sendAPIHttpRequest(string $method, string $url, array $headers = [], array $body = [])
     {
         $client = new Client();
         $headers = array_merge([
@@ -53,8 +62,9 @@ class BaseBarkaPayPaymentService
 
         try {
             $response = $client->request($method, $url, $options);
-            return json_decode($response->getBody(), true);
-        } catch (Exception $e) {
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (RequestException $e) {
+            logError("HTTP Request with payload: " . json_encode($body) . " failed: " . $e->getMessage(), "API");
             throw new RuntimeException("HTTP Request failed: " . $e->getMessage());
         }
     }
@@ -75,35 +85,37 @@ class BaseBarkaPayPaymentService
 
         try {
             $response = $client->request($method, $url, $options);
-            return json_decode($response->getBody(), true);
-        } catch (Exception $e) {
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (RequestException $e) {
+            logError("SCI HTTP Request with payload: " . json_encode($body) . " failed: " . $e->getMessage(), "API");
+
             throw new RuntimeException("SCI Request failed: " . $e->getMessage());
         }
     }
 
     public function verifyCredentials()
     {
-        return $this->sendHttpRequest(self::METHOD_GET, self::BASE_URL . 'ping');
+        return $this->sendAPIHttpRequest(self::METHOD_GET, $this->baseUrl . 'ping');
     }
 
     public function getAvailableServices()
     {
-        return $this->sendHttpRequest(self::METHOD_GET, self::BASE_URL . 'status');
+        return $this->sendAPIHttpRequest(self::METHOD_GET, $this->baseUrl . 'status');
     }
 
     public function getUserInfos()
     {
-        return $this->sendHttpRequest(self::METHOD_GET, self::BASE_URL . 'user');
+        return $this->sendAPIHttpRequest(self::METHOD_GET, $this->baseUrl . 'user');
     }
 
     public function getAccountsBalances()
     {
-        return $this->sendHttpRequest(self::METHOD_GET, self::BASE_URL . 'accounts');
+        return $this->sendAPIHttpRequest(self::METHOD_GET, $this->baseUrl . 'accounts');
     }
 
     public function getOperatorsInfos()
     {
-        return $this->sendHttpRequest(self::METHOD_GET, self::BASE_URL . 'operators-infos');
+        return $this->sendAPIHttpRequest(self::METHOD_GET, $this->baseUrl . 'operators-infos');
     }
 
     /**
@@ -122,18 +134,20 @@ class BaseBarkaPayPaymentService
         }
 
         try {
-            $url = self::BASE_URL . "payment/$publicId";
+            $url = "{$this->baseUrl}payment/{$publicId}";
             $headers = ['Accept-Language' => $language];
 
-            $response = $this->sendHttpRequest(self::METHOD_GET, $url, $headers);
+            $response = $this->sendAPIHttpRequest(self::METHOD_GET, $url, $headers);
 
-            if (!$response->successful()) {
-                $errorMessage = $response->json('message') ?? "Unknown error";
-                throw new RuntimeException("Error retrieving payment details: HTTP status {$response->status()} - $errorMessage");
+            if (!isset($response['status']) || $response['status'] !== 'success') {
+                $errorMessage = $response['message'] ?? "Unknown error";
+                logError("Error retrieving payment details: $errorMessage", "API");
+                throw new RuntimeException("Error retrieving payment details: $errorMessage");
             }
 
-            return $response->json();
+            return $response;
         } catch (Exception $e) {
+            logError("Exception occurred while retrieving payment details: " . $e->getMessage(), "API");
             throw new RuntimeException("Error retrieving payment details: " . $e->getMessage());
         }
     }
@@ -154,18 +168,20 @@ class BaseBarkaPayPaymentService
         }
 
         try {
-            $url = self::BASE_URL . "transfer/$publicId";
+            $url = "{$this->baseUrl}transfer/{$publicId}";
             $headers = ['Accept-Language' => $language];
 
-            $response = $this->sendHttpRequest(self::METHOD_GET, $url, $headers);
+            $response = $this->sendAPIHttpRequest(self::METHOD_GET, $url, $headers);
 
-            if (!$response->successful()) {
-                $errorMessage = $response->json('message') ?? "Unknown error";
-                throw new RuntimeException("Error retrieving transfer details: HTTP status {$response->status()} - $errorMessage");
+            if (!isset($response['status']) || $response['status'] !== 'success') {
+                $errorMessage = $response['message'] ?? "Unknown error";
+                logError("Error retrieving transfer details: $errorMessage", "API");
+                throw new RuntimeException("Error retrieving transfer details: $errorMessage");
             }
 
-            return $response->json();
+            return $response;
         } catch (Exception $e) {
+            logError("Exception occurred while retrieving transfer details: " . $e->getMessage(), "API");
             throw new RuntimeException("Error retrieving transfer details: " . $e->getMessage());
         }
     }
