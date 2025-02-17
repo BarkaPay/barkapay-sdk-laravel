@@ -12,6 +12,8 @@ barkapay-laravel est un package Laravel permettant d'intégrer les services de p
 Publiez le fichier de configuration pour personnaliser vos clés API et les autres options.
 
     php artisan vendor:publish --provider="BarkapayLaravel\BarkaPayServiceProvider"
+    php artisan vendor:publish --tag=barkapay-config
+
 
 ## Configurer les clés API :
 

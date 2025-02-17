@@ -20,7 +20,7 @@ class BarkaPayServiceProvider extends ServiceProvider
     public function register()
     {
         // Charge la configuration du package
-        $this->mergeConfigFrom(__DIR__ . '/config/barkapay.php', 'barkapay');
+        $this->mergeConfigFrom(__DIR__ . '/Config/barkapay.php', 'barkapay');
 
         // Liez les services dans le conteneur Laravel
         $this->app->singleton('barkapay.base', function ($app) {
@@ -34,6 +34,14 @@ class BarkaPayServiceProvider extends ServiceProvider
         $this->app->singleton('barkapay.sci', function ($app) {
             return new SCIBarkaPayPaymentService();
         });
+
+        $this->app->singleton('barkapay', function ($app) {
+            return new \BarkapayLaravel\Services\BarkaPayManager(
+                $app->make('barkapay.base'),
+                $app->make('barkapay.api'),
+                $app->make('barkapay.sci')
+            );
+        });
     }
 
     /**
@@ -43,7 +51,7 @@ class BarkaPayServiceProvider extends ServiceProvider
     {
         // Publiez le fichier de configuration pour permettre à l'utilisateur de le personnaliser
         $this->publishes([
-            __DIR__ . '/config/barkapay.php' => config_path('barkapay.php'),
+            __DIR__ . '/Config/barkapay.php' => config_path('barkapay.php'),
         ], 'barkapay-config');
     }
 
