@@ -7,19 +7,25 @@ class BarkaPayManager
     protected $baseService;
     protected $apiService;
     protected $sciService;
+    protected $orangeMoneyService;
+    protected $moovMoneyService;
 
     public function __construct(
         BaseBarkaPayPaymentService $baseService,
         APIBarkaPayPaymentService $apiService,
-        SCIBarkaPayPaymentService $sciService
+        SCIBarkaPayPaymentService $sciService,
+        OrangeMoneyBFBarkaPayPaymentService $orangeMoneyService,
+        MoovMoneyBFBarkaPayPaymentService $moovMoneyService
     ) {
         $this->baseService = $baseService;
         $this->apiService = $apiService;
         $this->sciService = $sciService;
+        $this->orangeMoneyService = $orangeMoneyService;
+        $this->moovMoneyService = $moovMoneyService;
     }
 
     /**
-     * Accéder au service de base
+     * Access the base service
      */
     public function base()
     {
@@ -27,7 +33,7 @@ class BarkaPayManager
     }
 
     /**
-     * Accéder au service API
+     * Access the API service
      */
     public function api()
     {
@@ -35,10 +41,26 @@ class BarkaPayManager
     }
 
     /**
-     * Accéder au service SCI
+     * Access the SCI service
      */
     public function sci()
     {
         return $this->sciService;
+    }
+
+    /**
+     * Access the Orange Money payment service
+     */
+    public function orangeMoneyBF()
+    {
+        return $this->orangeMoneyService;
+    }
+
+    /**
+     * Access the Moov Money payment service
+     */
+    public function moovMoneyBF()
+    {
+        return $this->moovMoneyService;
     }
 }

@@ -46,9 +46,8 @@ return [
 
 ## 🚀 Utilisation
 Une fois installé et configuré, vous pouvez utiliser **BarkaPay** via la **Façade Laravel** ou directement via le **Service Container**.
-
 ### 📌 Accéder aux Services
-BarkaPay expose **trois services principaux** sous une seule interface :
+BarkaPay expose **cinq services principaux** sous une seule interface :
 ```php
 $barkapay = app('barkapay');
 
@@ -60,6 +59,12 @@ $apiService = $barkapay->api();
 
 // Service SCI
 $sciService = $barkapay->sci();
+
+// Service Orange Money
+$orangeMoneyService = $barkapay->orangeMoneyBF();
+
+// Service Moov Money
+$moovMoneyService = $barkapay->moovMoneyBF();
 ```
 
 ---
@@ -90,6 +95,69 @@ $sciService = $barkapay->sci();
 | `getTransferDetails($publicId)`      | Récupère les détails d'un transfert spécifique      | `BarkaPay::api()->getTransferDetails($publicId);` |
 | `createMobilePayment($details)`      | Crée une transaction de paiement mobile            | `BarkaPay::api()->createMobilePayment([...]);` |
 | `createPaymentLink($data)`           | Crée un lien de paiement SCI                        | `BarkaPay::sci()->createPaymentLink([...]);` |
+| `proceedPayment($paymentDetails, $language)` | Initialise un paiement mobile avec Orange Money | `BarkaPay::api()->proceedPayment([...], 'fr');` |
+| `initMobilePayment($paymentDetails, $language)` | Initialise un paiement mobile avec Moov Money | `BarkaPay::api()->initMobilePayment([...], 'fr');` |
+| `verifyMobilePayment($publicId, $language)` | Vérifie le statut d'un paiement mobile | `BarkaPay::api()->verifyMobilePayment($publicId, 'fr');` |
+| `base()` | Accède au service de base | `BarkaPay::base();` |
+| `api()` | Accède au service API | `BarkaPay::api();` |
+| `sci()` | Accède au service SCI | `BarkaPay::sci();` |
+| `orangeMoney()` | Accède au service Orange Money | `BarkaPay::orangeMoney();` |
+| `moovMoney()` | Accède au service Moov Money | `BarkaPay::moovMoney();` |
+
+---
+
+## 📌 Exemples d'utilisation
+
+### 🔹 Création d'un lien de paiement SCI
+```php
+$sciService = $barkapay->sci();
+$paymentLink = $sciService->createPaymentLink([
+    'amount' => 10000,
+    'order_id' => 'ORDER123',
+    'callback_url' => 'https://example.com/callback'
+]);
+```
+
+### 🔹 Création d'un paiement mobile
+```php
+$apiService = $barkapay->api();
+$mobilePayment = $apiService->createMobilePayment([
+    'sender_country' => 'BFA',
+    'operator' => 'MOOV',
+    'sender_phonenumber' => '22670123456',
+    'amount' => 5000,
+    'order_id' => 'ORDER456',
+    'callback_url' => 'https://example.com/callback'
+]);
+```
+
+### 🔹 Vérification d'un paiement
+```php
+$paymentDetails = $apiService->getPaymentDetails('public_payment_id');
+```
+
+### 🔹 Paiement avec Orange Money
+```php
+$orangeMoneyService = $barkapay->orangeMoneyBF();
+$payment = $orangeMoneyService->proceedPayment([
+    'sender_phonenumber' => '22670123456',
+    'amount' => 10000,
+    'otp' => '123456',
+    'order_id' => 'ORDER789'
+]);
+```
+
+### 🔹 Paiement avec Moov Money
+```php
+$moovMoneyService = $barkapay->moovMoneyBF();
+$payment = $moovMoneyService->initMobilePayment([
+    'sender_phonenumber' => '22675123456',
+    'amount' => 15000,
+    'order_id' => 'ORDER101',
+    'callback_url' => 'https://example.com/callback'
+]);
+```
+
 
 ---
 
